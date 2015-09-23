@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.wangying.asset</groupId>
+		<artifactId>asset-framework</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>asset-interceptor</artifactId>
+	<name>asset-interceptor</name>
+	<packaging>jar</packaging>
+	<dependencies>
+	<!-- 验证框架实现类-->
+		<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-validator</artifactId>
+			</dependency>
+		<!-- 校验模块 -->
+		<dependency>
+			<groupId>com.wangying.asset</groupId>
+			<artifactId>asset-validator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>dubbo</artifactId>
+			<scope>compile</scope>
+		</dependency>
+         <dependency>
+               	<groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+          </dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+	</dependencies>
+</project>
