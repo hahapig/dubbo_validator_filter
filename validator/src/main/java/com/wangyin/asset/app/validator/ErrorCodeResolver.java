@@ -14,7 +14,7 @@ public class ErrorCodeResolver{
 	private volatile String  overrideDefaultErrorCode = null;
 
 	public String resolveErrorCode(ConstraintViolation<?> violation){
-        ErrorCode error = ErrorCodeManager.getErrorCode(violation.getRootBeanClass(), violation.getPropertyPath().toString());
+        ErrorCode error = ErrorCodeManager.getErrorCode(violation.getRootBean(), violation.getPropertyPath().toString());
         String result = null;
         if(error == ErrorCodeManager.defualtError()){
         	result = overrideDefaultErrorCode==null?error.value():overrideDefaultErrorCode;

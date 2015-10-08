@@ -187,7 +187,7 @@ public class AssetInterceptor implements Filter{
 		try {
 			return LazyInitValidatorConfig.getCodeReSolver().resolveErrorCode(constraintViolation);
 		} catch (Exception e) {
-			LOGGER.error("解析ErrorCode注解失败",e);
+			LOGGER.error("解析ErrorCode注解失败,将无法使用自定义ErrorCode",e);
 		}
 		LOGGER.warn("解析ErrorCode注解失败,将返回默认错误码：{}",LazyInitValidatorConfig.errorCode());
 		return LazyInitValidatorConfig.errorCode();

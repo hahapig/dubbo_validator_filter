@@ -3,6 +3,10 @@ package com.wangyin.asset.app.validator.cache;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Iterator;
 
 import com.wangyin.asset.app.framework.common.validator.annotation.ErrorCode;
 import com.wangyin.asset.app.validator.Constants;
@@ -14,7 +18,6 @@ import com.wangyin.asset.app.validator.Constants;
 public class ErrorCodeManager {
 	private static ErrorCode DEFAULT_ANNOTATION = null;
 	private static final String TYPE_SEPRATOR = "_";
-	
 	
 	/**
 	 * 获取默认的错误注解
@@ -44,10 +47,10 @@ public class ErrorCodeManager {
 	 * @param fiedPath
 	 * @return
 	 */
-	public static ErrorCode getErrorCode(Class<?> type,String fiedPath){
-		ErrorCode result = ErrorCodeMetaCache.instance().getErrorAnnotation(toFullPath(type, fiedPath));
+	public static ErrorCode getErrorCode(Object val,String fiedPath){
+		ErrorCode result = ErrorCodeMetaCache.instance().getErrorAnnotation(toFullPath(val.getClass(), fiedPath));
 		if(result == null){
-			result = resolveAndCache(type,fiedPath);
+			result = resolveAndCache(val,fiedPath);
 		}
 		return result;
 	}
@@ -58,18 +61,27 @@ public class ErrorCodeManager {
 	 * @param fiedPath
 	 * @return
 	 */
-	private static ErrorCode resolveAndCache(Class<?> type,String fiedPath){
+	private static ErrorCode resolveAndCache(final Object val,String fiedPath){
 		String[] fieds = fiedPath.split("\\.");
-		Class<?> tempType = type;
 		Class<?> lastType = null;
+		Object tempVal = val;
 		PropertyDescriptor descriptor = null;
 		for (String field : fieds) {
 			try {
-				descriptor = new PropertyDescriptor(field, tempType);
-				lastType = tempType;
-				tempType = descriptor.getPropertyType();
+				final String realName = getRealFieldName(field);//获取可用的属性名
+				descriptor = new PropertyDescriptor(realName, tempVal.getClass());
+				Method method = descriptor.getReadMethod();
+				tempVal = method.invoke(tempVal);//获取到属性对应的值
+				tempVal = getVal(tempVal,field,realName!=field);//如果是属性值为数组或者集合需要特殊处理,解析出真实值，进行下次迭代
+				lastType = tempVal.getClass();
 			} catch (IntrospectionException e) {
-				throw new RuntimeException(tempType.getCanonicalName()+"字段可能缺少get或set方法,fieldName="+field);
+				throw new RuntimeException(tempVal.getClass().getCanonicalName()+"字段可能缺少get或set方法,fieldName="+field);
+			} catch (IllegalArgumentException e) {
+				throw new RuntimeException("无法解析出errorCode注解");
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException("无法解析出errorCode注解");
+			} catch (InvocationTargetException e) {
+				throw new RuntimeException("无法解析出errorCode注解");
 			}
 		}
 		ErrorCode errorCode = null;
@@ -81,8 +93,39 @@ public class ErrorCodeManager {
 		if(errorCode == null){
 			errorCode = defualtError();
 		}
-		ErrorCodeMetaCache.instance().putIfAbsent(toFullPath(type, fiedPath), errorCode);
+		ErrorCodeMetaCache.instance().putIfAbsent(toFullPath(val.getClass(), fiedPath), errorCode);
 		return errorCode;
+	}
+	//如果类型为数组或者集合，需要特殊处理
+	private static Object getVal(Object arrayOrCollect,String field,boolean nameChanged){
+		if(!nameChanged){
+			return arrayOrCollect;
+		}
+		int index = Integer.parseInt(field.substring(field.indexOf('[')+1, field.indexOf(']')));
+		if(arrayOrCollect.getClass().isArray()){
+			Object[] x = (Object[])arrayOrCollect;
+			return x[index];
+		}
+		
+		if(arrayOrCollect instanceof Collection){
+			Iterator<Object> it = ((Collection) arrayOrCollect).iterator();
+			Object temp = null;
+			for (int i = 0; i <= index; i++) {
+				temp = it.next();
+			}
+			return temp;
+		}
+		return arrayOrCollect;
+	}
+	//数组或者集合的名字比较吊~需要特殊进行处理
+	private static String getRealFieldName(String fieldName){
+		if(fieldName == null){
+			return null;
+		}
+		if(fieldName.endsWith("]")){//处理数组
+			return fieldName.substring(0, fieldName.indexOf('['));
+		}
+		return fieldName;
 	}
 	
 	private static String toFullPath(Class<?> type,String fiedPath){

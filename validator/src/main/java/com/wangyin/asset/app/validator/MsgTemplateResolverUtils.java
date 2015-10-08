@@ -11,6 +11,8 @@ public class MsgTemplateResolverUtils {
 	private static final String PAYLOAD_KEY = "payload";
 	private static final String GROUPS_KEY = "groups";
 	private static final String VALUE_KEY = "value";
+	private static final String FLAGS_KEY = "flags";
+
 	
 	public static String getConditonVal(Map<String, Object> attrs){
 		if(attrs.get(VALUE_KEY)!=null){
@@ -20,6 +22,7 @@ public class MsgTemplateResolverUtils {
 		map.remove(MESSAGE_KEY);
 		map.remove(PAYLOAD_KEY);
 		map.remove(GROUPS_KEY);
+		map.remove(FLAGS_KEY);
 		if(map.isEmpty()){
 			return "";
 		}
