@@ -71,9 +71,9 @@ public class ErrorCodeManager {
 				final String realName = getRealFieldName(field);//获取可用的属性名
 				descriptor = new PropertyDescriptor(realName, tempVal.getClass());
 				Method method = descriptor.getReadMethod();
+				lastType = tempVal.getClass();//保留上级的类型
 				tempVal = method.invoke(tempVal);//获取到属性对应的值
 				tempVal = getVal(tempVal,field,realName!=field);//如果是属性值为数组或者集合需要特殊处理,解析出真实值，进行下次迭代
-				lastType = tempVal.getClass();
 			} catch (IntrospectionException e) {
 				throw new RuntimeException(tempVal.getClass().getCanonicalName()+"字段可能缺少get或set方法,fieldName="+field);
 			} catch (IllegalArgumentException e) {
